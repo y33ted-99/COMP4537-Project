@@ -30,7 +30,7 @@ app.post('/register', async (req, res) => {
     try {
       const newUser = new User({ email, first_name, last_name, password });
       await newUser.save();
-      res.send('User registered successfully!');
+      res.sendFile(path.join(__dirname, 'public', 'login.html'));
     } catch (err) {
       console.error('Error registering user:', err);
       res.send('Error registering user.');
@@ -48,7 +48,7 @@ app.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (user && await user.comparePassword(password)) {
-      res.send('Login successful!');
+        res.sendFile(path.join(__dirname, 'public', 'user.html'));
     } else {
       res.send('Invalid username or password');
     }
