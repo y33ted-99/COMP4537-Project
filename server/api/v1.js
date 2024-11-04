@@ -1,12 +1,12 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const dotenv = require("dotenv");
 const { spawn } = require('child_process');
 
-const app = express();
-app.use(bodyParser.json());
+dotenv.config({ path: require("path").resolve(__dirname, ".env") });
 
-// sumarization endpoint
-app.post('/summarize', (req, res) => {
+const router = express.Router();
+
+router.post('/summarize', (req, res) => {
     // get the text from the request
     const text = req.body.text;
 
@@ -45,7 +45,4 @@ app.post('/summarize', (req, res) => {
 
 });
 
-const PORT = process.env.PORT || 5500;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+module.exports = router;

@@ -1,6 +1,7 @@
 class ViewAPICall {
     constructor(container) {
         this.container = container;
+        this.totalUsage = 0;
     }
 
     createAPIView(id, requestType, apiContent) {
@@ -11,5 +12,10 @@ class ViewAPICall {
             <td>${apiContent}</td>
         `;
         this.container.appendChild(trContainer);
+        this.totalUsage++;
     }
 }
+
+const container = document.getElementById("api__table");
+const apiCall = new ViewAPICall(container);
+apiCall.createAPIView("1", "POST", "{contentakdl;aksd}")

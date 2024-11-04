@@ -2,10 +2,9 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
-    "express": "^4.21.1",
-    "mongodb": "^6.10.0",
-    "mongoose": "^8.8.0"
+    "express": "^4.21.1"
   },
   "name": "comp4537-project",
   "version": "1.0.0",
