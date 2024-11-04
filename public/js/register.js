@@ -9,11 +9,16 @@ const password = document.getElementById("password");
 
 const submit = document.getElementById("submit");
 submit.addEventListener("click", async () => {
-    const response = await auth.registerUser(firstName.value, lastName.value, email.value, password.value);
+  const response = await auth.registerUser(
+    firstName.value,
+    lastName.value,
+    email.value,
+    password.value
+  );
 
-    if (response === true) {
-        window.location.href = "/login";
-    }
+  if (response === true) {
+    window.location.href = "/login";
+  }
 
-    console.log("Rats");
-})
+  console.log("Rats");
+});
