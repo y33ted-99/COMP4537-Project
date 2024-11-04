@@ -1,45 +1,19 @@
-class Auth {
-    constructor() {
-        // mongodb connection
+import { Auth } from "./auth/authClass.js";
+
+const auth = new Auth("http://localhost:5500");
+
+const email = document.getElementById("email");
+const firstName = document.getElementById("first_name");
+const lastName = document.getElementById("last_name");
+const password = document.getElementById("password");
+
+const submit = document.getElementById("submit");
+submit.addEventListener("click", async () => {
+    const response = await auth.registerUser(firstName.value, lastName.value, email.value, password.value);
+
+    if (response === true) {
+        window.location.href = "/login";
     }
 
-    async registerUser(firstName, lastName, email, password) {
-        const registerBody = {
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            password: password
-        }
-        const registerJson = JSON.stringify(registerBody);
-
-        const response = await fetch("", {
-            method: "POST",
-            body: registerJson
-        });
-
-        if (response.status == 200) {
-            console.log("Success!");
-            return true;
-        } 
-        console.log("Failed.");
-    }
-
-    async loginUser(email, password) {
-        const loginBody = {
-            email: email,
-            password: password
-        }
-        const loginJson = JSON.stringify(loginBody);
-
-        const response = await fetch("", {
-            method: "GET",
-            body: loginJson
-        });
-
-        if (response.status == 200) {
-            console.log("Success!");
-            return true;
-        }
-        console.log("Failed.");
-    }
-}
+    console.log("Rats");
+})

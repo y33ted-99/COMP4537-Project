@@ -20,7 +20,7 @@ body {
     text-align: center;
   }
   
-  form {
+  div, form {
     display: flex;
     flex-direction: column;
   }
@@ -57,3 +57,6 @@ body {
     margin-top: 15px;
   }
   
+  #error_message {
+    display: none;
+  }
