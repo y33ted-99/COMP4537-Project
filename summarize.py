@@ -1,10 +1,11 @@
 # This script will be used to handle the summarization task.
 
 # It will accept input from node.js, process it with the BART model 
+# (https://huggingface.co/facebook/bart-large-cnn)
 # (https://huggingface.co/docs/transformers/en/model_doc/bart)
 # and output the result back to node.js.
 
-from transformers import BartTokenizer, BartForConditionalGeneration
+from transformers import BartTokenizer, BartForConditionalGeneration # type: ignore
 import sys
 import json
 
