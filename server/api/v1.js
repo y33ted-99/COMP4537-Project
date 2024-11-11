@@ -4,7 +4,7 @@ const { spawn } = require("child_process");
 const jwt = require("jsonwebtoken");
 
 const ApiToken = require("../models/apiToken");
-const { default: mongoose } = require("mongoose");
+const ApiCall = require("../models/apiCall");
 
 dotenv.config({ path: require("path").resolve(__dirname, ".env") });
 
@@ -21,6 +21,17 @@ async function tokenValidationMiddleware(req, res, next) {
       res.status(400).json({ message: "Invalid Token" });
       return;
     }
+
+    const apiCallAmount = tokenValid.api_list.length < 20;
+    if (!apiCallAmount) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          data: {},
+          error: "You have reached the max API call amount",
+        });
+    }
   } catch (err) {
     res
       .status(400)
@@ -36,11 +47,33 @@ async function tokenValidationMiddleware(req, res, next) {
   });
 }
 
+async function saveAPICallHistory(token, requestType, requestString) {
+  try {
+    const apiCall = await ApiCall.create({
+      request_type: requestType,
+      request_string: requestString,
+    });
+
+    const apiToken = await ApiToken.findOne({ token: token });
+    if (apiToken) {
+      const apiArray = apiToken.api_list;
+      apiArray.push(apiCall._id);
+
+      apiToken.api_list = apiArray;
+
+      await apiToken.save();
+    } else {
+      return false;
+    }
+    return true;
+  } catch (err) {
+    throw err;
+  }
+}
+
 router.post("/summarize", tokenValidationMiddleware, (req, res) => {
   // get the text from the request
   const text = req.body.text;
-
-  //   res.status(200).json({ text: text });
 
   // spawn the python script
   const pythonProcess = spawn("python", ["summarize.py"]);
@@ -59,10 +92,21 @@ router.post("/summarize", tokenValidationMiddleware, (req, res) => {
   });
 
   // handle the end of the process
-  pythonProcess.stdout.on("end", () => {
+  pythonProcess.stdout.on("end", async () => {
     // try to send the response to client
     try {
       const result = JSON.parse(data);
+      const apiCallHistory = await saveAPICallHistory(
+        req.body.token,
+        "POST",
+        text
+      );
+      if (!apiCallHistory) {
+        res
+          .status(500)
+          .json({ success: false, data: {}, error: "failed to save api call" });
+        return;
+      }
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to process the summary" });

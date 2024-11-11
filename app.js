@@ -16,11 +16,26 @@ app.use(cookieParser());
 app.use(express.static(`${__dirname}/public`));
 
 // auth middleware function
-function authMiddleware(req, res, next) {
-    const token = req.cookies && req.cookies.auth_token;
-    if (!token || !validateToken(token)) {
+async function authMiddleware(req, res, next) {    
+    const token = req.cookies && req.cookies._sid;
+    if (!token) {
         return res.redirect('/login');
     }
+
+    const sessionExists = await fetch("http://localhost:5500/auth/checkSession", {
+      method: "POST",
+      body: JSON.stringify({session: req.cookies._sid}),
+      headers: {
+        "Content-Type": "application/json", 
+      },
+    })
+    
+    const response = await sessionExists.json();
+    
+    if (response.success === false) {
+        return res.redirect('/login');
+    }
+
     next();
 }
 

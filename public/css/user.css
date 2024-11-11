@@ -41,6 +41,17 @@ body {
     flex-direction: column;
 }
 
+#user_item {
+    text-align: center;
+    text-decoration: none;
+}
+
+.navbar__item {
+    margin: 0;
+    color: black;
+    cursor: pointer;
+}
+
 #api_title {
     font-size: 1.25em;
     font-weight: 600;

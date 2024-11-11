@@ -19,6 +19,4 @@ submit.addEventListener("click", async () => {
   if (response === true) {
     window.location.href = "/login";
   }
-
-  console.log("Rats");
 });

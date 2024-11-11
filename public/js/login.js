@@ -9,7 +9,7 @@ const submit = document.getElementById("submit");
 submit.addEventListener("click", async () => {
   const response = await auth.loginUser(email.value, password.value);
 
-  if (response === true) {
+  if (response === true) {    
     window.location.href = "/user";
     return;
   }

@@ -1,7 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 
 // mongodb modles
 const User = require("../models/user");
@@ -16,12 +17,13 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 const passwordManager = require("./bcrypt");
+const { error } = require("console");
 
 const router = express.Router();
 
 router.post("/register", async (req, res) => {
   const body = req.body;
-  
+
   const reqKeys = ["first_name", "last_name", "email", "password"];
 
   if (!body && !reqKeys.every((key) => key in body)) {
@@ -36,13 +38,13 @@ router.post("/register", async (req, res) => {
   const { email, first_name, last_name } = body;
   try {
     // create token here
-    const token = jwt.sign({ email,
-      first_name,
-      last_name,
-      password: hashedPassword, }, process.env.JWT_SECRET_KEY);
+    const token = jwt.sign(
+      { email, first_name, last_name, password: hashedPassword },
+      process.env.JWT_SECRET_KEY
+    );
 
     const newToken = new ApiToken({
-      token: token
+      token: token,
     });
 
     const newUser = new User({
@@ -50,7 +52,7 @@ router.post("/register", async (req, res) => {
       first_name,
       last_name,
       password: hashedPassword,
-      api_token_id: newToken.api_token_id
+      api_token_id: newToken.api_token_id,
     });
 
     await newUser.save();
@@ -75,7 +77,7 @@ router.post("/login", async (req, res) => {
   // mongodb logic
   try {
     const { email, password } = body;
-    
+
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -86,6 +88,15 @@ router.post("/login", async (req, res) => {
     const passwordManagerObj = new passwordManager.PasswordManager();
 
     if (await passwordManagerObj.comparePassword(password, user.password)) {
+      const sessionToken = crypto.randomBytes(32).toString("hex");
+
+      user.session = sessionToken;
+      user.save();
+
+      res.setHeader(
+        "Set-Cookie",
+        `_sid=${sessionToken}; Path=/; HttpOnly; SameSite=lax;`
+      );
       res.status(200).json({ message: "Login Successful" });
       return;
     } else {
@@ -95,6 +106,81 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(400).send("Error logging in.");
+  }
+});
+
+router.post("/logout", async (req, res) => {
+  console.log(req.cookies);
+  try {
+    const session = req.cookies._sid;
+
+    const sessionExists = await User.findOne({ session: session });
+
+    if (!sessionExists) {
+      return res
+        .status(401)
+        .json({ success: false, data: {}, error: "Session does not exist!" });
+    }
+
+    sessionExists.session = null;
+    sessionExists.save();
+    res.setHeader("Set-Cookie", `_sid=; Path=/; HttpOnly; SameSite=lax;`);
+    return res.status(200).json({ success: true, data: {}, error: null });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, data: {}, error: err.message });
+  }
+});
+
+router.post("/checkSession", async (req, res) => {
+  try {
+    const sessionExists = await User.findOne({ session: req.body.session });
+    if (!sessionExists) {
+      return res
+        .status(401)
+        .json({ success: false, data: {}, error: "Session does not exist!" });
+    }
+
+    return res.status(200).json({ success: true, data: {}, error: null });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, data: {}, error: err.message });
+  }
+});
+
+router.get("/apiCalls", async (req, res) => {
+  try {
+    const user = await User.findOne({ session: req.cookies._sid });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, data: {}, error: "Session does not exist!" });
+    }
+
+    const apiTokenId = user.api_token_id;
+    const apiToken = await ApiToken.findOne({ api_token_id: apiTokenId });
+
+    const apiCallsList = apiToken.api_list;
+    if (apiCallsList.length === 0) {
+      return res.status(200).json({ success: true, data: [], error: null });
+    }
+
+    const apiCallPromises = apiCallsList.map(async (apiCallId) => {
+      return await ApiCall.findOne({ _id: apiCallId });
+    });
+
+    const apiCallObjectList = await Promise.all(apiCallPromises);
+
+    console.log(apiCallObjectList);
+    return res
+      .status(200)
+      .json({ success: true, data: apiCallObjectList, error: null });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, data: {}, error: err.message });
   }
 });
 

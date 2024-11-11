@@ -43,11 +43,29 @@ export class Auth {
       headers: {
         "Content-Type": "application/json", 
       },
+      credentials: 'include'
     });
 
-    console.log(response);
+    if (response.status == 200) {
+      console.log("Success!");
+      return true;
+    }
+    console.log("Failed.");
+    return false;
+  }
+
+  async logoutUser() {
+    const response = await fetch(`${this.endpoint}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", 
+      },
+      credentials: 'include'
+    });
 
     if (response.status == 200) {
+      console.log("a");
+      
       console.log("Success!");
       return true;
     }
