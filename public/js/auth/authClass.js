@@ -12,8 +12,6 @@ export class Auth {
     };
     const registerJson = JSON.stringify(registerBody);
 
-    console.log(registerJson);
-
     const response = await fetch(`${this.endpoint}/auth/register`, {
       method: "POST",
       body: registerJson,
