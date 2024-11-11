@@ -51,6 +51,7 @@ app.get("/user", authMiddleware, (_, res) => {
     res.sendFile("public/user.html", {root: __dirname});
 });
 
-app.listen("8080", () => {
-    console.log("Listening on Port 8080");
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
